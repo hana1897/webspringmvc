@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="kr.or.nextit.common.file.mapper.FileMapper"><!-- 필수 고유해야함 -->
+
+  <select id="selectFileItemList" resultType="FileItem" parameterType="map"> 		
+		SELECT
+		    file_seq_no,
+		    ref_seq_no,
+		    biz_type,
+		    file_path,
+		    file_name,
+		    file_save_name,
+		    file_content_type,
+		    file_size,
+		    file_fancy_size,
+		    file_down_cnt,
+		    reg_user,
+		    reg_date,
+		    upd_user,
+		    upd_date
+		FROM
+   			tb_file_item
+   		WHERE ref_seq_no = #{ref_seq_no}
+		AND biz_type = #{biz_type}       
+  </select>
+
+  <select id="selectFileItem" resultType="FileItem" parameterType="map"> 
+  
+		SELECT
+		    file_seq_no,
+		    ref_seq_no,
+		    biz_type,
+		    file_path,
+		    file_name,
+		    file_save_name,
+		    file_content_type,
+		    file_size,
+		    file_fancy_size,
+		    file_down_cnt,
+		    reg_user,
+		    reg_date,
+		    upd_user,
+		    upd_date
+		FROM
+   			tb_file_item
+   		WHERE file_seq_no = #{file_seq_no}
+ 
+  </select>
+  
+  <insert id="insertFileItem" parameterType="fileItem">
+	INSERT INTO tb_file_item (
+		file_seq_no,
+		ref_seq_no,
+		biz_type,
+		file_path,
+		file_name,
+		file_save_name,
+		file_content_type,
+		file_size,
+		file_fancy_size,
+		file_down_cnt,
+		reg_user,
+		reg_date,
+		upd_user,
+		upd_date
+	) VALUES (
+		SEQ_FILE_SEQ_NO.NEXTVAL, 
+		#{ref_seq_no},
+		#{biz_type},
+		#{file_path},
+		#{file_name},
+		#{file_save_name},
+		#{file_content_type},
+		#{file_size},
+		#{file_fancy_size},
+		0,
+		#{reg_user},
+		SYSDATE,
+		#{upd_user},
+		SYSDATE
+	)
+  </insert>
+  
+  <delete id="deleteFileItem" parameterType="map">
+	DELETE FROM tb_file_item WHERE file_seq_no IN 
+	<foreach item="fileSeqNo" index="index" collection="delFileSeqNo" open="(" separator="," close=")"><!-- collection map에들어있음.꺼내는 배열 -->  
+        #{fileSeqNo}
+  	</foreach>
+  </delete>
+  
+  <update id="updateDownloadCnt" parameterType="map">
+  		
+  		UPDATE tb_file_item SET file_down_cnt = file_down_cnt + 1 WHERE file_seq_no = #{file_seq_no}
+  		
+ </update>
+  
+</mapper>

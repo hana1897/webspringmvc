@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="kr.or.nextit.board.mapper.BoardMapper"><!-- 필수 고유해야함 -->
+  
+  <select id="selectBoardConunt" resultType="int" parameterType="map"> 
+  SELECT
+	    count(*) as count
+	FROM
+	    tb_board a, tb_member b
+	WHERE a.bo_writer = b.mem_id
+	AND a.bo_del_yn = 'N'
+	
+	<if test="searchWord != null and searchword != ''">
+		<if test="searchType '01'">	
+			AND a.bo_title LIKE '%' || #{searchWord} || '%'
+		</if>	
+		<if test="searchType '02'">		
+			AND a.bo_content LIKE '%' || #{searchWord} || '%'
+		</if>	
+		<if test="searchType '03'">		
+			AND (a.bo_title LIKE '%' || #{searchWord} || '%' OR a.bo_content LIKE '%' || #{searchWord} || '%')
+		</if>
+		<if test="searchType '04'">		
+			AND b.mem_name = #{searchWord}
+		</if>
+	</if>
+	
+  </select>
+  
+  <!-- kr.or.nextit.member.mapper.MemberMapper.selectMemberList DAO 메소드랑동일하게 -->
+  <select id="selectBoardList" resultType="kr.or.nextit.board.model.Board" parameterType="map"> 
+  	<include refid="CommonMapper.pageHeader"></include>
+	SELECT
+	    a.bo_seq_no,
+	    a.bo_type,
+	    a.bo_title,
+	    a.bo_content,
+	    a.bo_writer,
+	    b.mem_name as bo_writer_name,
+	    a.bo_hit_cnt,
+	    a.bo_open_yn,
+	    a.bo_del_yn,
+	    a.reg_user,
+	    a.reg_date,
+	    a.upd_user,
+	    a.upd_date
+	FROM
+	    tb_board a, tb_member b
+	WHERE a.bo_writer = b.mem_id
+	AND a.bo_del_yn = 'N'
+	
+	<if test="searchWord != null and searchword != ''">
+		<if test="searchType '01'">	
+			AND a.bo_title LIKE '%' || #{searchWord} || '%'
+		</if>	
+		<if test="searchType '02'">		
+			AND a.bo_content LIKE '%' || #{searchWord} || '%'
+		</if>	
+		<if test="searchType '03'">		
+			AND (a.bo_title LIKE '%' || #{searchWord} || '%' OR a.bo_content LIKE '%' || #{searchWord} || '%')
+		</if>
+		<if test="searchType '04'">		
+			AND b.mem_name = #{searchWord}
+		</if>
+	</if>
+	order by bo_seq_no desc
+	<include refid="CommonMapper.pageFooter"></include>
+  </select>
+  
+  <select id="selectBoard" resultType="kr.or.nextit.board.model.Board" parameterType="int"><!-- alias -->
+  	SELECT
+	    a.bo_seq_no,
+	    a.bo_type,
+	    a.bo_title,
+	    a.bo_content,
+	    a.bo_writer,
+	    (select b.mem_name from tb_member b 
+	    where a.bo_writer = b.mem_id) as bo_writer_name,
+	    a.bo_hit_cnt,
+	    a.bo_open_yn,
+	    a.bo_del_yn,
+	    a.reg_user,
+	    a.reg_date,
+	    a.upd_user,
+	    a.upd_date
+	FROM
+	    tb_board a
+	WHERE a.bo_seq_no = #{bo_seq_no}
+	AND a.bo_del_yn = 'N'
+  </select>
+  
+  <insert id="insertBoard" parameterType="Board">
+	<selectKey keyProperty="bo_seq_no" resultType="int" order="BEFORE"><!-- BEFORE/AFTER -->
+		SELECT SEQ_BO_SEQ_NO.NEXTVAL FROM DUAL
+	</selectKey>
+	 
+	INSERT INTO tb_board (
+	    bo_seq_no,
+	    bo_type,
+	    bo_title,
+	    bo_content,
+	    bo_writer,
+	    bo_hit_cnt,
+	    bo_open_yn,
+	    bo_del_yn,
+	    reg_user,
+	    reg_date,
+	    upd_user,
+	    upd_date
+	) VALUES (
+	    #{bo_seq_no},
+	    #{bo_type},
+	    #{bo_title},
+	    #{bo_content},
+	    #{bo_writer},
+	    0,
+	    NVL(#{bo_open_yn}, 'N'),
+	    'N',
+	    #{bo_writer},
+	    SYSDATE,
+	    #{bo_writer},
+	    SYSDATE
+	)
+  </insert>
+  
+  <update id="updateBoard" parameterType="Board">
+	UPDATE tb_board SET
+		bo_type         = #{bo_type},
+		bo_title        = #{bo_title},
+		bo_content      = #{bo_content},	
+		bo_open_yn      = NVL(#{bo_open_yn}, 'N'),
+		upd_user        = #{upd_user},
+		upd_date        = SYSDATE
+	WHERE bo_seq_no = #{bo_seq_no}
+
+  </update>
+  
+  <delete id="deleteBoard" parameterType="map">
+  	UPDATE tb_board SET   
+		bo_del_yn = 'Y',
+		upd_user = #{upd_user},
+		upd_date = SYSDATE
+	WHERE bo_seq_no = #{bo_seq_no}
+  </delete>
+  
+  <update id="updateHitCnt" parameterType="int">
+  	UPDATE tb_board SET
+  		bo_hit_cnt = bo_hit_cnt + 1
+  	WHERE bo_seq_no = #{bo_seq_no}
+  </update>
+  
+</mapper>
